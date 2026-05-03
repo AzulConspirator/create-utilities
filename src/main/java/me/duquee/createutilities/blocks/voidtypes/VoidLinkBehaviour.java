@@ -11,8 +11,9 @@ import me.duquee.createutilities.blocks.voidtypes.motor.VoidMotorNetworkHandler.
 import me.duquee.createutilities.voidlink.VoidLinkSlot;
 import net.createmod.catnip.nbt.NBTHelper;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtUtils;
+import net.minecraft.nbt.Tag;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
@@ -44,28 +45,39 @@ public class VoidLinkBehaviour extends BlockEntityBehaviour implements Clipboard
 	}
 
 	@Override
-	public void write(CompoundTag nbt, boolean clientPacket) {
-		super.write(nbt, clientPacket);
+	public void write(CompoundTag nbt, HolderLookup.Provider registries, boolean clientPacket) {
+		super.write(nbt, registries, clientPacket);
 
-		nbt.put("FrequencyFirst", frequencyFirst.getStack().save(new CompoundTag()));
-		nbt.put("FrequencyLast", frequencyLast.getStack().save(new CompoundTag()));
+		nbt.put("FrequencyFirst", saveFrequencyStack(registries, frequencyFirst.getStack()));
+		nbt.put("FrequencyLast", saveFrequencyStack(registries, frequencyLast.getStack()));
 
 		if (this.owner != null) {
-			CompoundTag compoundTag = new CompoundTag();
-			NbtUtils.writeGameProfile(compoundTag, this.owner);
-			nbt.put("Owner", compoundTag);
+			if (this.owner.getId() != null) {
+				nbt.putUUID("OwnerId", this.owner.getId());
+			}
+			if (this.owner.getName() != null) {
+				nbt.putString("OwnerName", this.owner.getName());
+			}
 		}
 
 	}
 
 	@Override
-	public void read(CompoundTag nbt, boolean clientPacket) {
-		super.read(nbt, clientPacket);
+	public void read(CompoundTag nbt, HolderLookup.Provider registries, boolean clientPacket) {
+		super.read(nbt, registries, clientPacket);
 
-		frequencyFirst = Frequency.of(ItemStack.of(nbt.getCompound("FrequencyFirst")));
-		frequencyLast = Frequency.of(ItemStack.of(nbt.getCompound("FrequencyLast")));
+		frequencyFirst = Frequency.of(ItemStack.parseOptional(registries, nbt.getCompound("FrequencyFirst")));
+		frequencyLast = Frequency.of(ItemStack.parseOptional(registries, nbt.getCompound("FrequencyLast")));
 
-		owner = nbt.contains("Owner", 10) ? NbtUtils.readGameProfile(nbt.getCompound("Owner")) : null;
+		owner = nbt.contains("OwnerId") || nbt.contains("OwnerName")
+				? new GameProfile(nbt.hasUUID("OwnerId") ? nbt.getUUID("OwnerId") : null,
+					nbt.contains("OwnerName") ? nbt.getString("OwnerName") : null)
+				: null;
+	}
+
+	@Override
+	public boolean isSafeNBT() {
+		return true;
 	}
 
 	public NetworkKey getNetworkKey() {
@@ -73,11 +85,9 @@ public class VoidLinkBehaviour extends BlockEntityBehaviour implements Clipboard
 	}
 
 	public void setFrequency(boolean first, ItemStack stack) {
-
-		stack = stack.copy();
-		stack.setCount(1);
+		stack = normalizeFrequencyStack(stack);
 		ItemStack toCompare = getFrequencyStack(first);
-		boolean changed = !ItemStack.isSameItemSameTags(stack, toCompare);
+		boolean changed = !ItemStack.isSameItemSameComponents(stack, toCompare);
 
 		if (changed) onLeaveNetwork();
 
@@ -155,23 +165,37 @@ public class VoidLinkBehaviour extends BlockEntityBehaviour implements Clipboard
 	}
 
 	@Override
-	public boolean writeToClipboard(CompoundTag nbt, Direction side) {
-		nbt.put("First", frequencyFirst.getStack().save(new CompoundTag()));
-		nbt.put("Last", frequencyLast.getStack().save(new CompoundTag()));
+	public boolean writeToClipboard(HolderLookup.Provider registries, CompoundTag nbt, Direction side) {
+		nbt.put("First", saveFrequencyStack(registries, frequencyFirst.getStack()));
+		nbt.put("Last", saveFrequencyStack(registries, frequencyLast.getStack()));
 		if (owner != null) NBTHelper.putMarker(nbt, "Owned");
 		return true;
 	}
 
 	@Override
-	public boolean readFromClipboard(CompoundTag nbt, Player player, Direction side, boolean simulate) {
+	public boolean readFromClipboard(HolderLookup.Provider registries, CompoundTag nbt, Player player, Direction side, boolean simulate) {
 
 		if (!nbt.contains("First") || !nbt.contains("Last") || !isOwner(player)) return false;
 		if (simulate) return true;
 
-		setFrequency(true, ItemStack.of(nbt.getCompound("First")));
-		setFrequency(false, ItemStack.of(nbt.getCompound("Last")));
+		setFrequency(true, ItemStack.parseOptional(registries, nbt.getCompound("First")));
+		setFrequency(false, ItemStack.parseOptional(registries, nbt.getCompound("Last")));
 		setOwner(nbt.contains("Owned") ? player.getGameProfile() : null);
 
 		return true;
+	}
+
+	private static Tag saveFrequencyStack(HolderLookup.Provider registries, ItemStack stack) {
+		return stack.saveOptional(registries);
+	}
+
+	private static ItemStack normalizeFrequencyStack(ItemStack stack) {
+		if (stack.isEmpty()) {
+			return ItemStack.EMPTY;
+		}
+
+		ItemStack normalized = stack.copy();
+		normalized.setCount(1);
+		return normalized;
 	}
 }

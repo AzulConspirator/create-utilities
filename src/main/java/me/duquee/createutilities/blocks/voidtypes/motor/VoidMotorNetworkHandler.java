@@ -8,10 +8,13 @@ import me.duquee.createutilities.CreateUtilities;
 import net.createmod.catnip.data.Couple;
 import net.createmod.catnip.levelWrappers.WorldHelper;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.nbt.TagParser;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.LevelAccessor;
 
@@ -73,17 +76,27 @@ public class VoidMotorNetworkHandler {
 		}
 
 		public void writeToBuffer(FriendlyByteBuf buffer) {
-			buffer.writeItem(frequencies.get(true).getStack());
-			buffer.writeItem(frequencies.get(false).getStack());
+			buffer.writeResourceLocation(BuiltInRegistries.ITEM.getKey(frequencies.get(true).getStack().getItem()));
+			buffer.writeResourceLocation(BuiltInRegistries.ITEM.getKey(frequencies.get(false).getStack().getItem()));
 			buffer.writeBoolean(owner != null);
-			if (owner != null) buffer.writeGameProfile(owner);
+			if (owner != null) {
+				buffer.writeBoolean(owner.getId() != null);
+				if (owner.getId() != null) {
+					buffer.writeUUID(owner.getId());
+				}
+				buffer.writeUtf(owner.getName() == null ? "" : owner.getName());
+			}
 		}
 
 		public static NetworkKey fromBuffer(FriendlyByteBuf buffer) {
-			ItemStack frequencyFirst = buffer.readItem();
-			ItemStack frequencyLast = buffer.readItem();
+			ItemStack frequencyFirst = new ItemStack(BuiltInRegistries.ITEM.get(buffer.readResourceLocation()));
+			ItemStack frequencyLast = new ItemStack(BuiltInRegistries.ITEM.get(buffer.readResourceLocation()));
 			GameProfile owner = null;
-			if (buffer.readBoolean()) owner = buffer.readGameProfile();
+			if (buffer.readBoolean()) {
+				UUID ownerId = buffer.readBoolean() ? buffer.readUUID() : null;
+				String ownerName = buffer.readUtf();
+				owner = new GameProfile(ownerId, ownerName.isBlank() ? null : ownerName);
+			}
 			return new NetworkKey(owner, Frequency.of(frequencyFirst), Frequency.of(frequencyLast));
 		}
 
@@ -105,20 +118,43 @@ public class VoidMotorNetworkHandler {
 		public CompoundTag serialize() {
 			CompoundTag tag = new CompoundTag();
 			if (owner != null) {
-				CompoundTag tag_ = new CompoundTag();
-				NbtUtils.writeGameProfile(tag_, owner);
-				tag.put("Owner", tag_);
+				if (owner.getId() != null) {
+					tag.putUUID("OwnerId", owner.getId());
+				}
+				if (owner.getName() != null) {
+					tag.putString("OwnerName", owner.getName());
+				}
 			}
-			tag.put("FrequencyFirst", frequencies.get(true).getStack().save(new CompoundTag()));
-			tag.put("FrequencyLast", frequencies.get(false).getStack().save(new CompoundTag()));
+			tag.put("FrequencyFirst", serializeFrequency(frequencies.get(true).getStack()));
+			tag.put("FrequencyLast", serializeFrequency(frequencies.get(false).getStack()));
 			return tag;
 		}
 
 		public static NetworkKey deserialize(CompoundTag tag) {
-			Frequency frequencyFirst = Frequency.of(ItemStack.of(tag.getCompound("FrequencyFirst")));
-			Frequency frequencyLast = Frequency.of(ItemStack.of(tag.getCompound("FrequencyLast")));
-			GameProfile owner = tag.contains("Owner", 10) ? NbtUtils.readGameProfile(tag.getCompound("Owner")) : null;
+			Frequency frequencyFirst = Frequency.of(deserializeFrequency(tag.getCompound("FrequencyFirst")));
+			Frequency frequencyLast = Frequency.of(deserializeFrequency(tag.getCompound("FrequencyLast")));
+			GameProfile owner = null;
+			if (tag.contains("OwnerId") || tag.contains("OwnerName")) {
+				owner = new GameProfile(tag.hasUUID("OwnerId") ? tag.getUUID("OwnerId") : null,
+						tag.contains("OwnerName") ? tag.getString("OwnerName") : null);
+			}
 			return new NetworkKey(owner, frequencyFirst, frequencyLast);
+		}
+
+		private static CompoundTag serializeFrequency(ItemStack stack) {
+			CompoundTag tag = new CompoundTag();
+			ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
+			tag.putString("id", itemId.toString());
+			if (stack.getCount() != 1) {
+				tag.putInt("Count", stack.getCount());
+			}
+			return tag;
+		}
+
+		private static ItemStack deserializeFrequency(CompoundTag tag) {
+			Item item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(tag.getString("id")));
+			int count = tag.contains("Count") ? tag.getInt("Count") : 1;
+			return new ItemStack(item, count);
 		}
 
 		@Override

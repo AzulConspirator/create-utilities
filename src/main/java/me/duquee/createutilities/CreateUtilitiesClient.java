@@ -4,11 +4,13 @@ import me.duquee.createutilities.blocks.CUPartialsModels;
 import me.duquee.createutilities.blocks.voidtypes.VoidStorageClient;
 import me.duquee.createutilities.blocks.voidtypes.battery.VoidBattery;
 import me.duquee.createutilities.blocks.voidtypes.tank.VoidTank;
+import me.duquee.createutilities.events.ClientEvents;
 import me.duquee.createutilities.ponder.CUPonderPlugin;
 import net.createmod.ponder.foundation.PonderIndex;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.fluids.capability.templates.FluidTank;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 
 public class CreateUtilitiesClient {
 
@@ -18,7 +20,8 @@ public class CreateUtilitiesClient {
 	public static final VoidStorageClient<VoidBattery> VOID_BATTERIES = new VoidStorageClient<>(
 			VoidBattery::new);
 
-	public static void onCtorClient(IEventBus modEventBus, IEventBus forgeEventBus) {
+	public static void onCtorClient(IEventBus modEventBus) {
+		NeoForge.EVENT_BUS.register(ClientEvents.class);
 		modEventBus.addListener(CreateUtilitiesClient::clientInit);
 		CUPartialsModels.init();
 	}

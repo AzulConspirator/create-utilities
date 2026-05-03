@@ -2,11 +2,10 @@ package me.duquee.createutilities.blocks.voidtypes.battery;
 
 import me.duquee.createutilities.CreateUtilities;
 import me.duquee.createutilities.blocks.voidtypes.motor.VoidMotorNetworkHandler.NetworkKey;
-import me.duquee.createutilities.networking.CUPackets;
 import me.duquee.createutilities.networking.packets.VoidBatteryUpdatePacket;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraftforge.energy.EnergyStorage;
-import net.minecraftforge.network.PacketDistributor;
+import net.neoforged.neoforge.energy.EnergyStorage;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 public class VoidBattery extends EnergyStorage {
 
@@ -37,7 +36,7 @@ public class VoidBattery extends EnergyStorage {
 
 	private void onContentsChanged() {
 		if (CreateUtilities.VOID_BATTERIES_DATA != null) CreateUtilities.VOID_BATTERIES_DATA.setDirty();
-		CUPackets.channel.send(PacketDistributor.ALL.noArg(), new VoidBatteryUpdatePacket(key, this));
+		PacketDistributor.sendToAllPlayers(new VoidBatteryUpdatePacket(key, this));
 	}
 
 	public CompoundTag serializeNBT() {

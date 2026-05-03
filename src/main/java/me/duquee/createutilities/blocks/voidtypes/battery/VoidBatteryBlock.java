@@ -1,5 +1,6 @@
 package me.duquee.createutilities.blocks.voidtypes.battery;
 
+import com.mojang.serialization.MapCodec;
 import com.simibubi.create.content.equipment.wrench.IWrenchable;
 import com.simibubi.create.foundation.block.IBE;
 
@@ -15,11 +16,17 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import org.jetbrains.annotations.Nullable;
 
 public class VoidBatteryBlock extends HorizontalDirectionalBlock implements IWrenchable, IBE<VoidBatteryTileEntity> {
+	public static final MapCodec<VoidBatteryBlock> CODEC = simpleCodec(VoidBatteryBlock::new);
 
 	public VoidBatteryBlock(Properties properties) {
 		super(properties);
 		this.registerDefaultState(this.defaultBlockState()
 				.setValue(FACING, Direction.NORTH));
+	}
+
+	@Override
+	protected MapCodec<? extends HorizontalDirectionalBlock> codec() {
+		return CODEC;
 	}
 
 	@Override

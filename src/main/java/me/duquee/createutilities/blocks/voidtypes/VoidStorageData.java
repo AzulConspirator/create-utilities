@@ -1,6 +1,7 @@
 package me.duquee.createutilities.blocks.voidtypes;
 
 import me.duquee.createutilities.blocks.voidtypes.motor.VoidMotorNetworkHandler.NetworkKey;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.saveddata.SavedData;
 
@@ -9,6 +10,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -21,16 +23,18 @@ public abstract class VoidStorageData<T> extends SavedData {
     }
 
     public @NotNull CompoundTag save(@NotNull CompoundTag tag,
+                             HolderLookup.Provider registries,
                                      Function<T, Boolean> isEmpty,
-                                     Function<T, CompoundTag> serializeNBT) {
+                             BiFunction<T, HolderLookup.Provider, CompoundTag> serializeNBT) {
         storages.forEach( (key, inventory) -> {
             if (!isEmpty.apply(inventory))
-                tag.put(key.toString(), serializeNBT.apply(inventory));
+                tag.put(key.toString(), serializeNBT.apply(inventory, registries));
         } );
         return tag;
     }
 
     public static <T, S extends VoidStorageData<T>> S load(CompoundTag tag,
+                                               HolderLookup.Provider registries,
                                                            Supplier<S> storageDataSupplier,
                                                            Function<NetworkKey, T> storageSupplier,
                                                            BiConsumer<T, CompoundTag> deserializeNBT) {

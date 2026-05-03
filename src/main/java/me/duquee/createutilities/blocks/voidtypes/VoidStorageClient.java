@@ -2,8 +2,8 @@ package me.duquee.createutilities.blocks.voidtypes;
 
 
 import me.duquee.createutilities.blocks.voidtypes.motor.VoidMotorNetworkHandler;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
 import java.util.HashMap;
 import java.util.Map;

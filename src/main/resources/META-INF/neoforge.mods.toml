@@ -3,7 +3,7 @@ loaderVersion="[4,)"
 license="All Rights Reserved"
 
 [[mods]]
-modId="create_utilities"
+modId="createutilities"
 version="0.3.1"
 displayName="Create Utilities"
 authors="Kura, Duquee"
@@ -11,21 +11,21 @@ description='''
 Adds Create-compatible void storage and utility blocks. This is a version ported to 1.21.1.
 '''
 
-[[dependencies.create_utilities]]
+[[dependencies.createutilities]]
     modId="neoforge"
     type="required"
     versionRange="[21.1.0,)"
     ordering="NONE"
     side="BOTH"
 
-[[dependencies.create_utilities]]
+[[dependencies.createutilities]]
     modId="minecraft"
     type="required"
     versionRange="[1.21.1, 1.22)"
     ordering="NONE"
     side="BOTH"
 
-[[dependencies.create_utilities]]
+[[dependencies.createutilities]]
     modId="create"
     type="required"
     versionRange="[6.0.4,)"

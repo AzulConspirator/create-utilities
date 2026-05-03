@@ -10,7 +10,7 @@ import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.core.Direction;
-import net.minecraftforge.fluids.capability.templates.FluidTank;
+import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 
 public class VoidTankRenderer extends SafeBlockEntityRenderer<VoidTankTileEntity> implements VoidTileRenderer<VoidTankTileEntity> {
 
@@ -29,7 +29,7 @@ public class VoidTankRenderer extends SafeBlockEntityRenderer<VoidTankTileEntity
 			FluidRenderer.renderFluidBox(
 					tank.getFluid().getFluid(), tank.getFluidAmount(),
 					.125F, .25F, .125F, .875F, .25F + 0.5F * tank.getFluidAmount()/tank.getCapacity(), .875F,
-					buffer, ms, light, false, true, tank.getFluid().getTag()
+					buffer, ms, light, false, true, tank.getFluid().getComponentsPatch()
 			);
 		}
 			/*FluidRenderer.renderFluidBox(

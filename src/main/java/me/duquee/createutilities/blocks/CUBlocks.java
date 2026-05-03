@@ -20,7 +20,6 @@ import me.duquee.createutilities.blocks.voidtypes.motor.VoidMotorBlock;
 import me.duquee.createutilities.blocks.voidtypes.tank.VoidTankBlock;
 import me.duquee.createutilities.items.CUItems;
 import me.duquee.createutilities.mountedstorage.CUMountedStorages;
-import me.duquee.createutilities.tabs.CUCreativeTabs;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.level.block.Block;
@@ -36,10 +35,6 @@ import static com.simibubi.create.foundation.data.TagGen.pickaxeOnly;
 import static me.duquee.createutilities.CreateUtilities.REGISTRATE;
 
 public class CUBlocks {
-
-	static {
-		REGISTRATE.setCreativeTab(CUCreativeTabs.BASE);
-	}
 
 	public static final BlockEntry<Block> VOID_STEEL_BLOCK = REGISTRATE.block("void_steel_block", Block::new)
 			.initialProperties(() -> Blocks.NETHERITE_BLOCK)

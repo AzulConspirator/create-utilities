@@ -1,5 +1,6 @@
 package me.duquee.createutilities.blocks.voidtypes.tank;
 
+import com.mojang.serialization.MapCodec;
 import com.simibubi.create.content.equipment.wrench.IWrenchable;
 import com.simibubi.create.content.fluids.transfer.GenericItemEmptying;
 import com.simibubi.create.content.fluids.transfer.GenericItemFilling;
@@ -10,6 +11,7 @@ import com.simibubi.create.foundation.fluid.FluidHelper;
 import me.duquee.createutilities.blocks.CUTileEntities;
 import me.duquee.createutilities.blocks.voidtypes.VoidLinkBehaviour;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
@@ -23,15 +25,21 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.phys.BlockHitResult;
-import net.minecraftforge.fluids.capability.templates.FluidTank;
+import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 
 public class VoidTankBlock extends Block implements IWrenchable, IBE<VoidTankTileEntity> {
+	public static final MapCodec<VoidTankBlock> CODEC = simpleCodec(VoidTankBlock::new);
 
 	public static final BooleanProperty CLOSED = BooleanProperty.create("closed");
 
 	public VoidTankBlock(Properties properties) {
 		super(properties);
 		registerDefaultState(defaultBlockState().setValue(CLOSED, false));
+	}
+
+	@Override
+	protected MapCodec<? extends Block> codec() {
+		return CODEC;
 	}
 
 	@Override
@@ -53,18 +61,15 @@ public class VoidTankBlock extends Block implements IWrenchable, IBE<VoidTankTil
 	}
 
 	@Override
-	public InteractionResult use(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
-
-		ItemStack heldItem = player.getItemInHand(hand);
-
-		if (heldItem.isEmpty()) return InteractionResult.PASS;
-		if (!player.isCreative()) return InteractionResult.PASS;
+	protected ItemInteractionResult useItemOn(ItemStack heldItem, BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+		if (heldItem.isEmpty()) return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+		if (!player.isCreative()) return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
 
 		FluidHelper.FluidExchange exchange = null;
-		if (!(world.getBlockEntity(pos) instanceof VoidTankTileEntity te)) return InteractionResult.FAIL;
+		if (!(world.getBlockEntity(pos) instanceof VoidTankTileEntity te)) return ItemInteractionResult.FAIL;
 
 		FluidTank fluidTank = te.getFluidStorage();
-		if (fluidTank == null) return InteractionResult.PASS;
+		if (fluidTank == null) return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
 
 		if (FluidHelper.tryEmptyItemIntoBE(world, player, hand, heldItem, te)){
 			exchange = FluidHelper.FluidExchange.ITEM_TO_TANK;
@@ -73,11 +78,11 @@ public class VoidTankBlock extends Block implements IWrenchable, IBE<VoidTankTil
 
 		if (exchange == null) {
 			if (GenericItemEmptying.canItemBeEmptied(world, heldItem) || GenericItemFilling.canItemBeFilled(world, heldItem))
-				return InteractionResult.SUCCESS;
-			return InteractionResult.PASS;
+				return ItemInteractionResult.SUCCESS;
+			return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
 		}
 
-		return InteractionResult.SUCCESS;
+		return ItemInteractionResult.SUCCESS;
 	}
 
 	@Override

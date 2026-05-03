@@ -2,16 +2,13 @@ package me.duquee.createutilities.events;
 
 import me.duquee.createutilities.voidlink.VoidLinkRenderer;
 import net.minecraft.client.Minecraft;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
 
-@Mod.EventBusSubscriber(Dist.CLIENT)
 public class ClientEvents {
 
 	@SubscribeEvent
-	public static void onTick(TickEvent.ClientTickEvent event) {
+	public static void onTick(ClientTickEvent.Post event) {
 		if (!isGameActive()) return;
 		VoidLinkRenderer.tick();
 	}
