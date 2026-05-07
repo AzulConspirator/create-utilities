@@ -2,7 +2,7 @@
   "type": "create:sandpaper_polishing",
   "ingredients": [
     {
-      "item": "minecraft:amethyst_shard"
+      "tag": "c:gems/amethyst"
     }
   ],
   "results": [

@@ -2,7 +2,7 @@
   "type": "create:item_application",
   "ingredients": [
     {
-      "item": "minecraft:obsidian"
+      "item": "create:andesite_casing"
     },
     {
       "item": "createutilities:void_steel_ingot"
